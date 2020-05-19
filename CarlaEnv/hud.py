@@ -42,8 +42,9 @@ class HUD(object):
         self.dim = (width, height)
 
         # Select a monospace font for the info panel
-        fonts = [x for x in pygame.font.get_fonts() if "mono" in x]
-        default_font = "ubuntumono"
+        #fonts = [x for x in pygame.font.get_fonts() if "mono" in x]
+        fonts = pygame.font.get_fonts()
+        default_font = "arial"
         mono = default_font if default_font in fonts else fonts[0]
         mono = pygame.font.match_font(mono)
         self.font_mono = pygame.font.Font(mono, 14)
