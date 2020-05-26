@@ -30,7 +30,7 @@ def preprocess_frame(frame):
     frame = frame.astype(np.float32) / 255.0
     return frame
 
-def create_encode_state_fn(vae, measurements_to_include):
+def create_encode_state_fn(measurements_to_include, waypointlist):
     """
         Returns a function that encodes the current state of
         the environment into some feature vector.
@@ -40,23 +40,32 @@ def create_encode_state_fn(vae, measurements_to_include):
     measure_flags = ["steer" in measurements_to_include,
                      "throttle" in measurements_to_include,
                      "speed" in measurements_to_include,
+                     "locationx" in measurements_to_include,
+                     "locationy" in measurements_to_include,
                      "orientation" in measurements_to_include]
 
     def encode_state(env):
         # Encode image with VAE
-        frame = preprocess_frame(env.observation)
-        encoded_state = vae.encode([frame])[0]
+        #frame = preprocess_frame(env.observation)
+        #encoded_state = vae.encode([frame])[0]
         
         # Append measurements
         measurements = []
         if measure_flags[0]: measurements.append(env.vehicle.control.steer)
         if measure_flags[1]: measurements.append(env.vehicle.control.throttle)
         if measure_flags[2]: measurements.append(env.vehicle.get_speed())
-
-        # Orientation could be usedful for predicting movements that occur due to gravity
-        if measure_flags[3]: measurements.extend(vector(env.vehicle.get_forward_vector()))
-
-        encoded_state = np.append(encoded_state, measurements)
+        if measure_flags[3]: measurements.append(env.vehicle.get_location().x)
+        if measure_flags[4]: measurements.append(env.vehicle.get_location().y)
         
+        # Orientation could be usedful for predicting movements that occur due to gravity
+        #if measure_flags[5]: measurements.extend(vector(env.vehicle.get_forward_vector()))
+
+        #encoded_state = np.append(encoded_state, measurements)
+        #encoded_state = np.append(measurements)
+        
+        #test
+        encoded_state = measurements
+        #encoded_state = np.append(measurements, waypointlist)
+        #print(len(encoded_state))
         return encoded_state
     return encode_state

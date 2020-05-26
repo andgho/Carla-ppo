@@ -12,6 +12,8 @@ from hud import HUD
 from planner import RoadOption, compute_route_waypoints
 from wrappers import *
 
+from vae_common import create_encode_state_fn, load_vae
+
 # TODO:
 # - Some solution to avoid using the same env instance for training and eval
 # - Just found out gym provides ObservationWrapper and RewardWrapper classes.
@@ -140,7 +142,8 @@ class CarlaLapEnv(gym.Env):
         self.metadata["video.frames_per_second"] = self.fps = self.average_fps = fps
         self.spawn_point = 1
         self.action_smoothing = action_smoothing
-        self.encode_state_fn = (lambda x: x) if not callable(encode_state_fn) else encode_state_fn
+
+        #WAS HERE
         self.reward_fn = (lambda x: 0) if not callable(reward_fn) else reward_fn
 
         self.world = None
@@ -192,8 +195,27 @@ class CarlaLapEnv(gym.Env):
         self.current_waypoint_index = 0
         self.checkpoint_waypoint_index = 0
 
+        self.wplist = []
+        for hehe in self.route_waypoints:
+            self.wplist.append(hehe[0].transform.location.x)
+            self.wplist.append(hehe[0].transform.location.y)
+        # Load VAE
+        #vae = load_vae(vae_model, vae_z_dim, vae_model_type)
+        waypointlist = self.wplist
+        measurements_to_include = set(["steer", "throttle", "speed", "locationx", "locationy"])
+        encode_state_fn = create_encode_state_fn(measurements_to_include, waypointlist)
+        self.encode_state_fn = (lambda x: x) if not callable(encode_state_fn) else encode_state_fn
+
+
+
         # Reset env to set initial state
         self.reset()
+    def get_waypoints(self):
+        thelist = []
+        for hehe in self.route_waypoints:
+            thelist.append(hehe[0].transform.location.x)
+            thelist.append(hehe[0].transform.location.y)
+        return thelist
 
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)

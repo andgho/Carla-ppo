@@ -57,7 +57,7 @@ def train(params, start_carla=True, restart=False):
     
     # Override params for logging
     params["vae_z_dim"] = vae.z_dim
-    params["vae_model_type"] = "mlp" if isinstance(vae, MlpVAE) else "cnn"
+    #params["vae_model_type"] = "mlp" if isinstance(vae, MlpVAE) else "cnn"
 
     print("")
     print("Training parameters:")
@@ -65,14 +65,17 @@ def train(params, start_carla=True, restart=False):
     print("")
 
     # Create state encoding fn
-    measurements_to_include = set(["steer", "throttle", "speed"])
-    encode_state_fn = create_encode_state_fn(vae, measurements_to_include)
+    #print("NUMMER1: train")
+    #measurements_to_include = set(["steer", "throttle", "speed", "locationx", "locationy"])
+    #measurements_to_include = set(["steer", "throttle", "speed"])
+    #encode_state_fn = create_encode_state_fn(vae, measurements_to_include)
 
     # Create env
     print("Creating environment")
+    print(type(vae.z_dim))
     env = CarlaEnv(obs_res=(160, 80),
                    action_smoothing=action_smoothing,
-                   encode_state_fn=encode_state_fn,
+                   encode_state_fn=None,
                    reward_fn=reward_functions[reward_fn],
                    synchronous=synchronous,
                    fps=fps,
@@ -82,7 +85,16 @@ def train(params, start_carla=True, restart=False):
     best_eval_reward = -float("inf")
 
     # Environment constants
-    input_shape = np.array([vae.z_dim + len(measurements_to_include)])
+    #input_shape = np.array([vae.z_dim + len(measurements_to_include)])
+
+    waypointlist = env.get_waypoints()
+    #print(len(waypointlist))
+    #print(len(encode_state_fn))
+    #encode_state_fn = encode_state_fn + waypointlist
+    #print(len(encode_state_fn))    
+
+    #input_shape = np.array([len(measurements_to_include) + len(waypointlist)])
+    input_shape = np.array([len(measurements_to_include)])
     num_actions = env.action_space.shape[0]
 
     # Create model
